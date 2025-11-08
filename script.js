@@ -1,113 +1,113 @@
-// ✅ No API key needed (Inshorts API)
-const BASE_URL = "https://inshortsapi.vercel.app/news?category=";
+//GNews API Key
+const API_KEY = "b33d5cfbf0729fdbf6b403201c7df44d";
+const BASE_URL = "https://gnews.io/api/v4/search";
 
 // DOM Elements
-const locationDisplay = document.getElementById("location-display");
-const newsContainer = document.getElementById("news-container");
-const searchInput = document.getElementById("search-input");
-const searchButton = document.getElementById("search-button");
-const categoryButtons = document.querySelectorAll(".category-btn");
+const locationDisplay = document.getElementById('location-display');
+const newsContainer = document.getElementById('news-container');
+const searchInput = document.getElementById('search-input');
+const searchButton = document.getElementById('search-button');
+const categoryButtons = document.querySelectorAll('.category-btn');
 
-// Default category for homepage
-let userLocationCategory = "national";
+let userLocationQuery = "world";
+let currentCategory = "top";
 
-// 1) Detect Location and map to news category
+// 1) Detect Location
 async function detectLocation() {
     try {
         const res = await fetch("https://ipapi.co/json/");
         const data = await res.json();
         locationDisplay.textContent = `📍 ${data.city}, ${data.country}`;
 
+        // Map any city to a valid topic for news
         const country = data.country.toLowerCase();
-
-        if (country.includes("india")) userLocationCategory = "national";
-        else userLocationCategory = "world";
+        if (country.includes("india")) userLocationQuery = "india";
+        else if (country.includes("united states")) userLocationQuery = "us";
+        else userLocationQuery = "world";
 
     } catch {
         locationDisplay.textContent = "📍 Using Global News";
-        userLocationCategory = "world";
+        userLocationQuery = "world";
     }
 }
 
-// 2) Fetch News and auto fallback if empty
-async function fetchAndRenderNews(category) {
+// 2) Fetch News
+async function fetchAndRenderNews(query, category) {
     newsContainer.innerHTML = `<p class="loading-text">Fetching news...</p>`;
 
-    const validCategories = [
-        "national","world","technology","business","sports",
-        "entertainment","science","health","startup","automobile","politics"
-    ];
+    let finalQuery = (category === "top") ? query : category;
 
-    // If user searched something not in categories → fallback to world
-    if (!validCategories.includes(category.toLowerCase())) {
-        category = "world";
-    }
-
-    const url = BASE_URL + category.toLowerCase();
+    const apiUrl = `${BASE_URL}?q=${encodeURIComponent(finalQuery)}&lang=en&max=12&apikey=${API_KEY}`;
 
     try {
-        const res = await fetch(url);
-        const data = await res.json();
+        const response = await fetch(apiUrl);
+        const data = await response.json();
 
-        // If API response is empty → fallback to national news
-        if (!data.data || data.data.length === 0) {
-            return fetchAndRenderNews("national");
+        if (!data.articles || data.articles.length === 0) {
+            // Fallback to world news
+            if (finalQuery !== "world") return fetchAndRenderNews("world", "top");
+            newsContainer.innerHTML = `<p class="loading-text">No news found.</p>`;
+            return;
         }
 
-        renderNews(data.data);
+        renderNews(data.articles);
 
     } catch (error) {
-        newsContainer.innerHTML = `<p class="loading-text">⚠️ Failed to load news.</p>`;
+        newsContainer.innerHTML = `<p class="loading-text">⚠️ Failed to fetch news.</p>`;
     }
 }
 
-// 3) Display the News Cards
+// 3) Render UI Cards
 function renderNews(articles) {
     newsContainer.innerHTML = "";
 
     articles.forEach((article, index) => {
         const card = document.createElement("div");
         card.className = "news-card";
-        card.style.transitionDelay = `${index * 0.05}s`;
+        card.style.transitionDelay = `${index * 0.08}s`;
 
         card.innerHTML = `
-            <img class="news-card-image" src="${article.imageUrl}"
-                onerror="this.src='https://via.placeholder.com/400x200?text=No+Image';">
-
+            <img class="news-card-image" src="${article.image || ''}"
+                 onerror="this.src='https://via.placeholder.com/400x200?text=No+Image';">
             <div class="news-card-content">
-                <span class="news-source">${article.author || "Source"}</span>
+                <span class="news-source">${article.source.name}</span>
                 <h3 class="news-title">${article.title}</h3>
-                <p class="news-description">${article.content || ""}</p>
-                <a href="${article.readMoreUrl}" target="_blank" class="read-more-btn">Read More</a>
+                <p class="news-description">${article.description || "No description available."}</p>
+                <a href="${article.url}" target="_blank" class="read-more-btn">Read More</a>
             </div>
         `;
-
         newsContainer.appendChild(card);
+
         setTimeout(() => card.classList.add("loaded"), 10);
     });
 }
 
-// 4) Search Functionality
+// 4) Search
 searchButton.addEventListener("click", () => {
-    const query = searchInput.value.trim().toLowerCase();
-    if (query) fetchAndRenderNews(query);
+    const query = searchInput.value.trim();
+    if (query) {
+        categoryButtons.forEach(btn => btn.classList.remove("active"));
+        fetchAndRenderNews(query, "search");
+    }
 });
 searchInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") searchButton.click();
 });
 
-// 5) Category Filters
+// 5) Category Filtering
 categoryButtons.forEach(button => {
     button.addEventListener("click", () => {
-        categoryButtons.forEach(b => b.classList.remove("active"));
+        categoryButtons.forEach(btn => btn.classList.remove("active"));
         button.classList.add("active");
-        fetchAndRenderNews(button.dataset.category);
+        currentCategory = button.dataset.category;
+        const query = (currentCategory === "top") ? userLocationQuery : currentCategory;
         searchInput.value = "";
+        fetchAndRenderNews(query, currentCategory);
     });
 });
 
-// 6) App Start
+// Initialize
 document.addEventListener("DOMContentLoaded", async () => {
     await detectLocation();
-    fetchAndRenderNews(userLocationCategory);
+    fetchAndRenderNews(userLocationQuery, currentCategory);
 });
