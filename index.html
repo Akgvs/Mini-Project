@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Webpage</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="navbar">
+        <h1 class="logo">News</h1>
+        <p id="location-display" class="location-info">Detecting location...</p>
+    </header>
+
+    <div class="container">
+        <div class="controls-section">
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Search news by topic (e.g., sports, finance)...">
+                <button id="search-button">Search</button>
+            </div>
+            
+            <nav class="categories">
+                <button class="category-btn active" data-category="top">Top News</button>
+                <button class="category-btn" data-category="india">India</button>
+                <button class="category-btn" data-category="world">World</button>
+                <button class="category-btn" data-category="sports">Sports</button>
+                <button class="category-btn" data-category="business">Business</button>
+                <button class="category-btn" data-category="technology">Technology</button>
+                <button class="category-btn" data-category="entertainment">Entertainment</button>
+                <button class="category-btn" data-category="health">Health</button>
+            </nav>
+        </div>
+
+        <main id="news-container" class="news-grid">
+            <p class="loading-text">Fetching the latest news...</p>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
