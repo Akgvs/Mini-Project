@@ -11,7 +11,7 @@ Feature	Description
   🏷 Category Filters	Quick-select categories like Sports, Tech, Business, World, etc.
   🎨 Modern UI	Clean layout, smooth animations, line-clamped headlines, responsive grid.
   📱 Fully Responsive	Works perfectly on desktop, tablet, and mobile.
-  🛠️ Tech Stack
+🛠️ Tech Stack
   HTML5
   CSS3 (Custom UI + Animation + Responsive Grid)
   Vanilla JavaScript (No frameworks)
